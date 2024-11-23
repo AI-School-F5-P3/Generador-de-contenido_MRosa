@@ -1,11 +1,17 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 from huggingface_hub import InferenceClient
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
+import torch
 from typing import Optional
 import os
 
 # Inicializar la aplicación FastAPI
 app = FastAPI()
+
+# Inicializar el modelo de moderación
+moderation_tokenizer = AutoTokenizer.from_pretrained("cardiffnlp/twitter-roberta-base-offensive")
+moderation_model = AutoModelForSequenceClassification.from_pretrained("cardiffnlp/twitter-roberta-base-offensive")
 
 # Obtener el token de Hugging Face de las variables de entorno
 hf_token = os.getenv("HF_API_TOKEN")
@@ -21,11 +27,11 @@ client = InferenceClient(
 
 # Diccionario de prompts
 prompts = {
-    "blog": "{olvida} Crea un blog informativo sobre {tema} que sea interesante para una audiencia formada por {audiencia} y en un tono {tono}. {restriction} {output_format}",
-    "twitter": "{olvida} Escribe un tweet corto y atractivo sobre {tema} para una audiencia formada por {audiencia} y en un tono {tono}. {restriction} {output_format}",
-    "instagram": "{olvida} Crea una publicación de Instagram sobre {tema}, ideal para captar la atención de una audiencia formada por {audiencia} y en un tono {tono}. Responde con Texto: (el texto generado) e Imagen sugerida: (aquí sugiéreme un prompt para stable diffusion en inglés). {restriction} {output_format}",
-    "SEO": "{olvida} Genera contenido SEO optimizado sobre {tema}, diseñado para atraer a una audiencia formada por {audiencia} y en un tono {tono}. {restriction} {output_format}",
-    "infantil": "{olvida} Explícame este tema: {tema}. Hazlo como si fuera una historia para niños de {edad} años y en un tono {tono}. {restriction} {output_format}"
+    "blog": "{idioma} {olvida} Crea un blog informativo sobre {tema} que sea interesante para una audiencia formada por {audiencia} y en un tono {tono}. {restriction} {output_format}",
+    "twitter": "{idioma} {olvida} Escribe un tweet corto y atractivo sobre {tema} para una audiencia formada por {audiencia} y en un tono {tono}. {restriction} {output_format}",
+    "instagram": "{idioma} {olvida} Crea una publicación de Instagram sobre {tema}, ideal para captar la atención de una audiencia formada por {audiencia} y en un tono {tono} {restriction} {output_format} ",
+    "SEO": "{idioma} {olvida} Genera contenido SEO optimizado sobre {tema}, diseñado para atraer a una audiencia formada por {audiencia} y en un tono {tono}. {restriction} {output_format}",
+    "infantil": "{idioma} {olvida} Explícame este tema: {tema}. Hazlo como si fuera una historia para niños de {edad} años y en un tono {tono}. {restriction} {output_format}"
 }
 
 # Modelo para validar las solicitudes
@@ -35,6 +41,7 @@ class ContentRequest(BaseModel):
     audiencia: str
     tono: str = "neutro"
     edad: Optional[int] = None
+    idioma: str = "Habla en español."
     olvida: str = ""
     output_format: str = ""
     restriction: str = ""
@@ -53,29 +60,48 @@ class ContentRequest(BaseModel):
             "'txt': '(el texto generado)',"
             " 'img': '(aquí sugiéreme un prompt para stable diffusion en inglés)'"
         )
-        
+
+# Función de moderación
+def validar_moderacion(texto: str):
+    inputs = moderation_tokenizer(texto, return_tensors="pt", truncation=True, max_length=512)
+    outputs = moderation_model(**inputs)
+    probabilities = torch.softmax(outputs.logits, dim=1)
+    
+    # Índice 1 representa contenido ofensivo
+    offensive_score = probabilities[0][1].item()
+    return offensive_score
 
 @app.post("/generar")
 async def generar_contenido(request: ContentRequest):
+    # Combinar tema y audiencia para moderación
+    texto_completo = f"{request.tema} {request.audiencia}"
+    
+    # Validar el contenido con el modelo de moderación
+    score = validar_moderacion(texto_completo)
+    if score > 0.5:  # Ajustar el umbral según tus necesidades
+        raise HTTPException(
+            status_code=400, 
+            detail=f"El texto contiene contenido potencialmente ofensivo (score={score:.2f})."
+        )
+    
     # Validar que la plataforma esté soportada
     if request.plataforma not in prompts:
         raise HTTPException(status_code=400, detail="Plataforma no soportada.")
     
     # Crear el prompt
     prompt = prompts[request.plataforma].format(
-    olvida=request.olvida,
-    tema=request.tema,
-    audiencia=request.audiencia,
-    tono=request.tono,
-    edad=request.edad if request.edad else "no especificada",
-    output_format=request.output_format,  
-    restriction=request.restriction
-)
-
+        idioma = request.idioma,
+        olvida=request.olvida,
+        tema=request.tema,
+        audiencia=request.audiencia,
+        tono=request.tono,
+        edad=request.edad if request.edad else "no especificada",
+        output_format=request.output_format,  
+        restriction=request.restriction
+    )
 
     # Limitar el tamaño del prompt antes de enviar la solicitud
     prompt = prompt[:1500]  # Limita caracteres o tokens (según corresponda)
-
 
     try:
         # Realizar la inferencia usando el cliente de Hugging Face
