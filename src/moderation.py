@@ -9,7 +9,7 @@ class Moderation:
         
     def validar_moderacion(self, texto: str) -> float:
         traduccion = TraductorM2M100().traducir_a_ingles(texto)
-        inputs = self.tokenizer(traduccion, return_tensors="pt", truncation=False, max_length=1500)
+        inputs = self.tokenizer(traduccion, return_tensors="pt", truncation=False, max_length=7500)
         outputs = self.model(**inputs)
         probabilities = torch.softmax(outputs.logits, dim=1)
         # Índice 1 representa contenido ofensivo

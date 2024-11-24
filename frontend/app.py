@@ -2,6 +2,35 @@ import streamlit as st
 import requests
 import json
 
+import re
+import json
+
+def sanitize_to_json(text):
+    """
+    Limpia y corrige un texto para que sea un JSON válido.
+    """
+    try:
+        # Intenta cargar directamente como JSON
+        return json.loads(text)
+    except json.JSONDecodeError:
+        try:
+            # Reemplazar comillas simples por dobles
+            sanitized_text = text.replace("'", '"')
+
+            # Escapar caracteres especiales comunes (\n, \t, etc.)
+            sanitized_text = sanitized_text.replace("\n", "\\n").replace("\t", "\\t")
+
+            # Agregar comillas dobles a claves JSON no entrecomilladas
+            sanitized_text = re.sub(r'(?<!")(\b[a-zA-Z_][a-zA-Z0-9_]*\b)(?=\s*:)', r'"\1"', sanitized_text)
+
+            # Validar y cargar el JSON
+            return json.loads(sanitized_text)
+        except Exception as e:
+            # Si aún falla, devolver un error detallado
+            raise ValueError(f"Error al sanitizar el texto: {e}\nTexto problemático:\n{text}")
+
+
+
 # URL del backend de FastAPI
 API_URL = "http://127.0.0.1:8000/generar"
 
@@ -45,13 +74,8 @@ if st.button("Generar Contenido"):
 
             # Validar si "respuesta" está presente
             if "respuesta" in response_data:
-                # Convertir el texto JSON anidado en un diccionario
-                try:
-                    data = json.loads(response_data["respuesta"])  # Si "respuesta" es un JSON en formato de cadena
-                except json.JSONDecodeError:
-                    st.error(f"La respuesta no tiene un formato JSON válido. \n{response_data["respuesta"]}")
-                    data = None
-
+                # Intentar sanitizar y cargar el JSON de la respuesta
+                data = sanitize_to_json(response_data["respuesta"])
                 if data:
                     # Acceder a los valores del diccionario
                     texto = data.get("txt", "Texto no disponible.")
@@ -60,7 +84,8 @@ if st.button("Generar Contenido"):
                     # Mostrar los resultados
                     st.success(f"{texto}")
                     st.info(f"{descripcion_imagen}")
-
+                else:
+                    st.error("No se pudo convertir la respuesta a un JSON válido.")
             else:
                 st.error("La respuesta no contiene la clave 'respuesta'.")
         else:

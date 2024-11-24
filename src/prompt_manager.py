@@ -25,13 +25,14 @@ class ContentRequest(BaseModel):
         )
         self.output_format = (
             "Tu respuesta debe ser un código JSON válido con este formato:"
-            f"\"txt\": \"(el texto generado con tono {self.tono} en {self.idioma} (No introduzcas comillas en txt, salvo las necesarias para un json bien formado))\","
-            " 'img': \"(aquí sugiéreme un prompt para stable diffusion en inglés (No incluyas el texto: 'Prompt for Stable Diffusion:'))\""
-            "Ejemplo: \"txt\": \"Texto de ejemplo\", \"img\": \"Illustration of an example\""            
-            "Pero, si encontraste contenido ofensivo, debe ser un código JSON con este formato:"
-            f"\"txt\": \"(pide que se te reformule el tema o audiencia en tono {self.tono})\","
-            "\"img\":\"\"."         
+            f"{{\"txt\": \"(el texto generado con tono {self.tono} en {self.idioma} (No introduzcas comillas en txt, salvo las necesarias para un JSON bien formado))\","
+            "\"img\": \"(aquí sugiéreme un prompt para stable diffusion en inglés (No incluyas el texto: 'Prompt for Stable Diffusion:'))\"}}"
+            " Ejemplo: {\"txt\": \"Texto de ejemplo\", \"img\": \"Illustration of an example\"}."            
+            " Pero, si encontraste contenido ofensivo, debe ser un código JSON con este formato:"
+            f"{{\"txt\": \"(pide que se te reformule el tema o audiencia en tono {self.tono})\","
+            "\"img\": \"\"}}."
         )
+
 
 PROMPTS = {
     "blog": "{olvida} Crea una entrada de varios parrafos, sobre {tema}, para un blog informativo, que sea interesante para una audiencia formada por {audiencia}. {restriction} {output_format}",
