@@ -12,6 +12,7 @@ main.load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
 # Acceder a las variables de entorno
 API_URL = os.getenv('API_URL')
 
+
 def sanitize_to_json(text):
     """
     Limpia y corrige un texto para que sea un JSON válido.
@@ -32,7 +33,12 @@ def sanitize_to_json(text):
             sanitized_text = re.sub(r'(?<!\\)([\n\r\t])', lambda match: f'\\{match.group(1)}', sanitized_text)
 
             # Validar y cargar el JSON corregido
-            return json.loads(sanitized_text)
+            try:
+                return json.loads(sanitized_text)
+            except json.JSONDecodeError:
+                # Si no es un JSON, devolver una estructura predeterminada
+                return {"txt": sanitized_text.replace('txt:', ''), "img": ""}
+
         except Exception as nested_e:
             raise ValueError(f"Error al sanear el texto: {nested_e}\nTexto problemático:\n{text}")
 
@@ -96,6 +102,12 @@ if st.button("Generar Contenido"):
                     st.error("No se pudo convertir la respuesta a un JSON válido.")
             else:
                 st.error("La respuesta no contiene la clave 'respuesta'.")
+        elif response.status_code == 400:
+            error_response = response.json()
+            if (tono == "humorístico") or (tono == "informal") or (tono == "sarcástico")  :
+                st.error("❌ Te voy a lavar la boca con lejía")
+            else:
+                st.error(f"❌ {json.loads(response.text)['detail']['msg']}")
         else:
             # Manejar errores del servidor
             st.error(f"Error del servidor ({response.status_code}): {response.text}")
