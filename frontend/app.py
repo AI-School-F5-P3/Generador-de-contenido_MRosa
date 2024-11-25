@@ -29,8 +29,6 @@ def sanitize_to_json(text):
             # Si aún falla, devolver un error detallado
             raise ValueError(f"Error al sanitizar el texto: {e}\nTexto problemático:\n{text}")
 
-
-
 # URL del backend de FastAPI
 API_URL = "http://127.0.0.1:8000/generar"
 
