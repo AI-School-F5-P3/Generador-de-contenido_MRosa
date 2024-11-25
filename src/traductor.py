@@ -1,5 +1,5 @@
 from transformers import M2M100ForConditionalGeneration, M2M100Tokenizer
-from langdetect import detect, DetectorFactory
+from langdetect import detect, DetectorFactory, LangDetectException
 
 class TraductorM2M100:
     def __init__(self, modelo: str = "facebook/m2m100_418M"):
@@ -22,10 +22,19 @@ class TraductorM2M100:
         :return: Código del idioma detectado (por ejemplo, 'es' para español).
         """
         try:
+            # Verificar si el texto es válido
+            if not texto.strip():
+                raise ValueError("El texto está vacío o no contiene caracteres significativos.")
+            
+            # Detectar el idioma del texto
             idioma = detect(texto)
             return idioma
-        except Exception as e:
+        except LangDetectException as e:
+            # Si langdetect no puede procesar el texto
             raise ValueError(f"Error en la detección del idioma: {e}")
+        except Exception as e:
+            # Otros errores inesperados
+            raise ValueError(f"Error inesperado al detectar el idioma: {e}")
 
     def traducir_a_ingles(self, texto: str) -> str:
         """
@@ -53,5 +62,8 @@ class TraductorM2M100:
 if __name__ == "__main__":
     traductor = TraductorM2M100()
     texto_entrada = "idiotas"
-    traduccion = traductor.traducir_a_ingles(texto_entrada)
-    print(traduccion)  # Esto imprimirá la traducción al inglés del texto proporcionado
+    try:
+        traduccion = traductor.traducir_a_ingles(texto_entrada)
+        print(traduccion)  # Esto imprimirá la traducción al inglés del texto proporcionado
+    except ValueError as e:
+        print(f"Error: {e}")

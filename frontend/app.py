@@ -1,9 +1,16 @@
 import streamlit as st
 import requests
 import json
-
 import re
-import json
+import os
+
+from dotenv import main
+
+main.load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
+
+
+# Acceder a las variables de entorno
+API_URL = os.getenv('API_URL')
 
 def sanitize_to_json(text):
     """
@@ -14,23 +21,21 @@ def sanitize_to_json(text):
         return json.loads(text)
     except json.JSONDecodeError:
         try:
+            print(f'\n\n======================================== TEXTO ORIGINAL SIN SANEAR ==============================\n\n{text}\n\n=================================================================================================')
             # Reemplazar comillas simples por dobles
             sanitized_text = text.replace("'", '"')
 
-            # Escapar caracteres especiales comunes (\n, \t, etc.)
-            sanitized_text = sanitized_text.replace("\n", "\\n").replace("\t", "\\t")
+            # Combinar hashtags huérfanos con el contenido de 'txt'
+            sanitized_text = sanitized_text.replace('","#', ' #')
 
-            # Agregar comillas dobles a claves JSON no entrecomilladas
-            sanitized_text = re.sub(r'(?<!")(\b[a-zA-Z_][a-zA-Z0-9_]*\b)(?=\s*:)', r'"\1"', sanitized_text)
+            # Escapar caracteres de control no escapados (\n, \r, \t)
+            sanitized_text = re.sub(r'(?<!\\)([\n\r\t])', lambda match: f'\\{match.group(1)}', sanitized_text)
 
-            # Validar y cargar el JSON
+            # Validar y cargar el JSON corregido
             return json.loads(sanitized_text)
-        except Exception as e:
-            # Si aún falla, devolver un error detallado
-            raise ValueError(f"Error al sanitizar el texto: {e}\nTexto problemático:\n{text}")
+        except Exception as nested_e:
+            raise ValueError(f"Error al sanear el texto: {nested_e}\nTexto problemático:\n{text}")
 
-# URL del backend de FastAPI
-API_URL = "http://127.0.0.1:8000/generar"
 
 # Título de la aplicación
 st.title("Generador de Contenido Automatizado")
@@ -50,6 +55,10 @@ tono = st.selectbox(
     ]
 )
 edad = st.slider("Edad (solo para infantil)", 3, 12, value=6) if plataforma == "infantil" else None
+idioma = st.selectbox(
+    "Idioma", 
+    ["Español", "Inglés", "Francés", "Alemán", "Italiano", "Chino", "Japonés", "Ruso", "Árabe", "Portugués", "Coreano", "Hindi"]
+)
 
 # Botón para generar contenido
 if st.button("Generar Contenido"):
@@ -59,7 +68,8 @@ if st.button("Generar Contenido"):
         "tema": tema,
         "audiencia": audiencia,
         "tono": tono,
-        "edad": edad
+        "edad": edad,
+        "idioma": idioma
     }
 
     try:
