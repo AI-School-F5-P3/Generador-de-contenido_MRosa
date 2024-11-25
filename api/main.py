@@ -26,7 +26,10 @@ async def generar_contenido(request: ContentRequest):
     if score > 0.5:
         raise HTTPException(
             status_code=400, 
-            detail=f"El texto contiene contenido potencialmente ofensivo (score={score:.2f})."
+            detail={
+            "error": f"El texto contiene contenido potencialmente ofensivo (score={score:.2f}).",
+            "msg": "Por favor, revisa el texto para evitar lenguaje ofensivo antes de enviarlo."
+            }
         )
 
     # Validar la plataforma
