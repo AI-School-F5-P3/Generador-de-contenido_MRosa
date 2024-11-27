@@ -1,0 +1,275 @@
+/* Variables */
+:root {
+    --white-color: #fff;
+    --transparent-bg: rgba(0, 0, 0, 0.35);
+    --primary-bg: rgba(33, 39, 80, 0.8);
+    --primary-color: #19d7ba;
+    --secondary-color: rgba(255, 255, 255, 0.3);
+    --terthiary-color: rgba(255, 255, 255, 0.6);
+    --gradient-bg: linear-gradient(352deg, rgb(44 0 131) 0%, rgba(33, 6, 88, 1) 33%, rgba(34, 40, 130, 1) 68%, rgba(7, 105, 148, 1) 100%);
+    --font-awesome: 'Font Awesome 5 Free';
+    --hover-transition: all 0.3s linear;
+    --border-radius: 10px;
+}
+
+/* Estilo general */
+body, h1 {
+    color: var(--white-color);
+}
+h2 {
+    color: var(--primary-color);
+}
+
+header.stAppHeader {
+    background: transparent;
+}
+
+.stAppToolbar {
+    background: var(--primary-bg);
+    border-radius: var(--border-radius);
+    padding: 6px 5px;
+    color: var(--white-color);
+}
+
+img[alt="Running..."] {
+    background: white;
+    border-radius: 5px;
+    padding: 5px;
+}
+
+div[data-testid="stImageContainer"] img {
+    border-radius: var(--border-radius);
+}
+
+.stMain {
+    background: var(--gradient-bg);
+}
+
+.stMain:before{display: block;
+    width: 100vw;
+    height: 100vh;
+    content: "";
+    background: linear-gradient(200deg, rgb(84 255 0) 0%, rgba(34, 40, 130, 1) 50%, var(--primary-color) 100%);
+    position: absolute;
+    opacity: .3;}
+
+.stMainBlockContainer.block-container {
+    max-width: 60vw;
+    padding-top: 5vh;
+}
+
+.st-key-analizar_video button {
+    background-blend-mode: darken;
+    border: none;
+    margin: 2rem 0;
+}
+
+.st-key-analizar_video button > div > p:before,
+.st-key-analizar_texto button > div > p:before {
+    font-family: var(--font-awesome);
+    content: '\f002';
+    display: inline-block;
+    padding-right: 8px;
+    vertical-align: middle;
+    font-weight: 900;
+}
+
+[placeholder]::placeholder{
+    color: var(--terthiary-color);
+    font-weight: 300;
+    opacity: 1;
+}
+
+[data-baseweb="textarea"],
+[data-baseweb="base-input"],
+[data-baseweb="input"] {
+    border: none;
+    background: none;
+}
+
+[data-baseweb="textarea"] [data-baseweb="base-input"] textarea,
+[data-testid="stNumberInputStepDown"],
+[data-testid="stNumberInputStepUp"] {
+    background: transparent;
+    border: none;
+    transition: var(--hover-transition);
+}
+
+[data-testid="stNumberInputContainer"],
+[data-baseweb="textarea"] [data-baseweb="base-input"] textarea,
+[data-baseweb="input"] [data-baseweb="base-input"] input:not([type="number"]) {
+    background: var(--transparent-bg);
+    border: 1px solid var(--secondary-color);
+    border-radius: var(--border-radius);
+    color: var(--white-color);
+}
+
+[data-baseweb="select"] > div {
+    background: var(--transparent-bg);
+    border: 1px solid var(--secondary-color);
+    border-radius: var(--border-radius);
+    color: var(--white-color);
+}
+
+[data-testid="stNumberInputStepDown"]:hover,
+[data-testid="stNumberInputStepUp"]:hover,
+[data-testid="stNumberInputStepDown"]:focus,
+[data-testid="stNumberInputStepUp"]:focus {
+    background-color: var(--primary-color) !important;
+}
+
+.st-db {
+    caret-color: var(--white-color);
+}
+
+.st-c1 {
+    color: var(--white-color);
+}
+
+.stButton button[kind="secondary"] {
+    background: rgba(30, 50, 50, 0.3);
+    border: 1px solid var(--secondary-color);
+    transition: var(--hover-transition);
+}
+
+.stButton button[kind="secondary"]:hover {
+    background: rgba(30, 30, 30, 0.3);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.stButton button[kind="secondary"]:active {
+    color: var(--white-color);
+    border-color: var(--primary-color);
+    background-color: var(--primary-color);
+}
+
+.stButton button[kind="secondary"]:focus-visible {
+    box-shadow: var(--primary-color) 0px 0px 0px 0.2rem;
+}
+
+.stButton button[kind="secondary"]:focus:not(:active) {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+[data-baseweb="checkbox"] span {
+    background-color: var(--primary-color);
+    border: 3px solid var(--primary-color);
+}
+
+h3, h4, label[data-testid="stMetricLabel"] p {
+    font-weight: bold;
+    color: var(--white-color);
+}
+
+label, p, ul, li {
+    color: var(--white-color);
+}
+
+.stNumberInput {
+    max-width: 265px;
+}
+
+.st-f9 {
+    background: linear-gradient(to right, var(--primary-color) 0%, var(--primary-color) 44.4444%, rgba(151, 166, 195, 0.25) 44.4444%, rgba(151, 166, 195, 0.25) 100%);
+}
+.st-f8 {
+    background: linear-gradient(to right, var(--primary-color) 0%, var(--primary-color) 11.1111%, rgba(151, 166, 195, 0.25) 11.1111%, rgba(151, 166, 195, 0.25) 100%);
+}
+.st-f7 {
+    background: linear-gradient(to right, var(--primary-color) 0%, var(--primary-color) 22.2222%, rgba(151, 166, 195, 0.25) 22.2222%, rgba(151, 166, 195, 0.25) 100%);
+}
+.st-ew {
+    background: linear-gradient(to right, var(--primary-color) 0%, var(--primary-color) 33.3333%, rgba(151, 166, 195, 0.25) 33.3333%, rgba(151, 166, 195, 0.25) 100%);
+}
+.st-f1 {
+    background: linear-gradient(to right, var(--primary-color) 0%, var(--primary-color) 44.4444%, rgba(151, 166, 195, 0.25) 44.4444%, rgba(151, 166, 195, 0.25) 100%);
+}
+.st-f2 {
+    background: linear-gradient(to right, var(--primary-color) 0%, var(--primary-color) 55.5556%, rgba(151, 166, 195, 0.25) 55.5556%, rgba(151, 166, 195, 0.25) 100%);
+}
+.st-f3 {
+    background: linear-gradient(to right, var(--primary-color) 0%, var(--primary-color) 66.6667%, rgba(151, 166, 195, 0.25) 66.6667%, rgba(151, 166, 195, 0.25) 100%);
+}
+.st-f4 {
+    background: linear-gradient(to right, var(--primary-color) 0%, var(--primary-color) 77.7778%, rgba(151, 166, 195, 0.25) 77.7778%, rgba(151, 166, 195, 0.25) 100%);
+}
+.st-f5 {
+    background: linear-gradient(to right, var(--primary-color) 0%, var(--primary-color) 88.8889%, rgba(151, 166, 195, 0.25) 88.8889%, rgba(151, 166, 195, 0.25) 100%);
+}
+.st-f6 {
+    background: linear-gradient(to right, var(--primary-color) 0%, var(--primary-color) 100%, rgba(151, 166, 195, 0.25) 100%, rgba(151, 166, 195, 0.25) 100%);
+}
+
+[role="slider"]{
+    background-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+[role="slider"] > div{
+    color: var(--primary-color); 
+}
+[data-testid="stSliderTickBarMin"], [data-testid="stSliderTickBarMax"]{
+    color: var(--white-color);
+}
+
+.stHorizontalBlock {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: flex-start;
+    align-content: flex-start;
+}
+
+.stExpander {
+    border: 1px solid var(--secondary-color);
+    border-radius: var(--border-radius);
+}
+
+.stExpander svg[data-testid="stExpanderToggleIcon"] {
+    transition: var(--hover-transition);
+    fill: var(--secondary-color);
+}
+
+.stExpander:hover svg[data-testid="stExpanderToggleIcon"] {
+    fill: var(--primary-color);
+}
+
+.stExpander .stHorizontalBlock .stColumn:last-child {
+    width: 40%;
+}
+
+.stExpander .stHorizontalBlock .stColumn:first-child {
+    width: 60% !important;
+}
+
+[data-testid="stExpanderDetails"] .stColumn:first-child [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stVerticalBlockBorderWrapper"][data-test-scroll-behavior="normal"] {
+    background: var(--transparent-bg);
+}
+
+.js-plotly-plot .plotly .main-svg {
+    background: transparent !important;
+}
+
+.stMainMenuPopover {
+    background: var(--transparent-bg);
+}
+
+.stMainMenuPopover * {
+    background: transparent;
+}
+
+ul[role="listbox"] {
+    background: var(--transparent-bg);
+}
+
+ul[role="listbox"] ul[role="option"] li:hover,
+ul[role="listbox"] ul[role="option"]:active {
+    background-color: var(--transparent-bg);
+}
+
+[data-baseweb="popover"] {
+    background: none;
+}
