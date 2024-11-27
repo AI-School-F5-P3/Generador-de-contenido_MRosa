@@ -25,28 +25,22 @@ async def generar_contenido(request: ContentRequest):
     score = moderation.validar_moderacion(texto_completo)
     if score > 0.5:
         raise HTTPException(
-            status_code=400, 
+            status_code=400,
             detail={
-            "error": f"El texto contiene contenido potencialmente ofensivo (score={score:.2f}).",
-            "msg": "Por favor, revisa el texto para evitar lenguaje ofensivo antes de enviarlo."
+                "error": f"El texto contiene contenido potencialmente ofensivo (score={score:.2f}).",
+                "msg": "Por favor, revisa el texto para evitar lenguaje ofensivo antes de enviarlo."
             }
         )
 
     # Validar la plataforma
     if request.plataforma not in PROMPTS:
         raise HTTPException(status_code=400, detail="Plataforma no soportada.")
-    
-    # Crear el prompt
-    prompt = PROMPTS[request.plataforma].format(
-        idioma=request.idioma,
-        olvida=request.olvida,
-        tema=request.tema,
-        audiencia=request.audiencia,
-        tono=request.tono,
-        edad=request.edad if request.edad else "no especificada",
-        output_format=request.output_format,  
-        restriction=request.restriction
-    )
+
+    # Crear el prompt utilizando el método generate_prompt
+    try:
+        prompt = request.generate_prompt()  # Personalización incluida en generate_prompt
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
     # Limitar el tamaño del prompt
     prompt = prompt[:1500]
