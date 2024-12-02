@@ -56,7 +56,7 @@ div[data-testid="stImageContainer"] img {
 
 .stMainBlockContainer.block-container {
     max-width: 60vw;
-    padding-top: 5vh;
+    padding-top: 2rem;
 }
 
 .st-key-lolo{
@@ -210,12 +210,12 @@ label, p, ul, li {
     flex-direction: row;
     flex-wrap: nowrap;
     justify-content: flex-start;
-    align-items: center;
+    align-items: flex-start;
     align-content: flex-start;
 }
 
-.st-key-lolo .stHorizontalBlock {
-    align-items: flex-start;
+.st-key-svgimage .stHorizontalBlock {
+    align-items: center;
 }
 
 svg#freepik_stories-creativity {

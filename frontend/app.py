@@ -24,7 +24,7 @@ local_css(os.path.join(os.path.dirname(__file__), 'static', 'creativity-styles.c
 col1, col2 = st.columns([1.5, 1])  # La primera columna es 1.5 veces más ancha que la segunda
 
 with col1:
-    st.title("Generador de Contenido")
+    st.image("./frontend/static/img/logo.png", width = 300)
     # Formulario para la entrada del usuario
     topic = st.text_input("Tema", placeholder="Introduce el topic aquí...")
     audience = st.text_input("Audiencia", placeholder="Introduce la audience objetivo...")
@@ -59,21 +59,15 @@ with col1:
         author = st.text_input("Nombre del/a autor/a", placeholder="Autor/a...")
 
 with col2:
-    svg_write()
-
-
-
-
-
-
-
+    with st.container(key="svgimage"):
+        svg_write()
 
 # Botón para generar contenido
 if st.button("Generar Contenido"):
     if topic.strip() == "":
-            st.error("El campo de topic es obligatorio. Por favor, ingrese un valor.")
+            st.error("El campo Tema es obligatorio. Por favor, ingrese un valor.")
     elif audience.strip() == "":
-            st.error("El campo de audience es obligatorio. Por favor, ingrese un valor.")
+            st.error("El campo Audiencia es obligatorio. Por favor, ingrese un valor.")
     elif personalization_info == True:
         if (company_name.strip() == "") and (author.strip() == ""):
             st.error("Debe introducir al menos Empresa o Autor.")
@@ -140,10 +134,9 @@ if st.button("Generar Contenido"):
                             st.error("La respuesta no contiene la clave 'respuesta'.")
                     elif response.status_code == 400:
                         error_response = response.json()
-                        if (tone == "humorístico") or (tone == "sarcástico"):
+                        if (tone == "Humorístico") or (tone == "Sarcástico"):
                             st.error("❌ Te voy a lavar la boca con lejía")
                         else:
-                            print(f"\n\n=================================================\n\nContenido de response.text:\n\n{response.text}\n\n=================================================")
                             st.error(f"❌ {json.loads(response.text)['detail']}")
                     else:
                         st.error(f"Error del servidor ({response.status_code}): {response.text}")
