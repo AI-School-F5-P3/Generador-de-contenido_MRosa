@@ -36,7 +36,7 @@ class TraductorM2M100:
             # Otros errores inesperados
             raise ValueError(f"Error inesperado al detectar el idioma: {e}")
 
-    def traducir_a_ingles(self, texto: str) -> str:
+    def translate_to_english(self, texto: str) -> str:
         """
         Traduce el texto proporcionado al inglés.
 
@@ -63,7 +63,7 @@ if __name__ == "__main__":
     traductor = TraductorM2M100()
     texto_entrada = "idiotas"
     try:
-        traduccion = traductor.traducir_a_ingles(texto_entrada)
+        traduccion = traductor.translate_to_english(texto_entrada)
         print(traduccion)  # Esto imprimirá la traducción al inglés del texto proporcionado
     except ValueError as e:
         print(f"Error: {e}")

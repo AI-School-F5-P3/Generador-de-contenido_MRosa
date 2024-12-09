@@ -1,6 +1,56 @@
+from dotenv import load_dotenv
+from pathlib import Path
+import os
 import streamlit as st
 import re
 import json
+
+# Definición de colores e iconos
+BRIGHT_GREEN = "\033[92m"
+TURQUOISE = "\033[38;5;87m"
+PASTEL_YELLOW = "\033[38;5;187m"
+ITALIC = "\033[3m"
+BG_BLACK = "\033[40m"
+RESET = "\033[0m"
+
+TAXI = "\U0001F696"          # 🚖
+FLAG = "\U0001F3C1"          # 🏁
+GREEN_CIRCLE = "\U0001F7E2"  # 🟢
+RED_CIRCLE = "\U0001F534"    # 🔴
+CROSS_MARK = "\U0000274C"    # ❌
+STAR = "\U00002B50"          # ⭐
+DESTINATION_FLAG = "\U0001F3C1"  # 🏁
+LOCATION_MARKER = "\U0001F4CD"   # 📍
+CELEBRATION = "\U0001F389"       # 🎉
+SMILE = "\U0001F600"     # 😀
+THINKING = "\U0001F914"  # 🤔
+CRY = "\U0001F622"       # 😢
+RAISED_HAND = "\U0000270B"  # ✋
+MONEY_BAG = "\U0001F4B0"      # 💰 
+DOLLAR_BILL = "\U0001F4B5"    # 💵
+
+def get_env_key(env_key, levels_up=0, env_file_name=".env"):
+    """
+    Obtiene una clave específica de un archivo .env ubicado en un nivel superior.
+
+    Parameters:
+    - env_key (str): El nombre de la clave que se quiere recuperar.
+    - levels_up (int): Cuántos niveles hacia arriba buscar el archivo .env (por defecto, 0).
+    - env_file_name (str): El nombre del archivo .env (por defecto, ".env").
+
+    Returns:
+    - str: El valor de la clave solicitada, o None si no se encuentra.
+    """
+    # Resolver la ruta al archivo .env
+    dotenv_path = Path(__file__).resolve().parents[levels_up] / env_file_name
+    if not dotenv_path.exists():
+        raise FileNotFoundError(f"No se encontró el archivo .env en {dotenv_path}")
+
+    # Cargar las variables del archivo .env
+    load_dotenv(dotenv_path=dotenv_path)
+
+    # Obtener la clave API
+    return os.environ.get(env_key)
 
 def sanitize_to_json(text):
     """
@@ -85,12 +135,10 @@ def sanitize_to_json(text):
             raise ValueError(f"Error al procesar JSON: {e_inner.msg} en {error_position}\nTexto problemático:\n{sanitized_text}")
 
 # JSON Problemático
-json_problematico = '''
-{"txt":"### Jóvenes Marchosos: El Arte de Ser Rico y No Saber Gestionarlo\n\n#### ¿Por Qué No Me Sorprende Ver a Jóvenes Marchosos?\n\n¿Sabes qué es lo más gracioso? Que los jóvenes marchosos no solo tienen dinero, sino que también tienen la habilidad innata de gastarlo en cosas que ni siquiera necesitan. ¿Cómo no amar a una generación que puede permitirse un iPhone 15 Pro Max pero no puede pagar una factura de luz a tiempo? ¡Qué ironía!\n\n#### El Arte de la Compra Inútil\n\n¿Alguna vez has visto a alguien comprar una chaqueta de cuero por mil euros porque \\"es de marca\\"? Pues bien, eso es lo que llamo el arte de la compra inútil. Estos jóvenes no solo compran ropa, sino que también se dedican a coleccionar accesorios que solo sirven para lucir y no para usar. ¿Qué tal si invierten ese dinero en algo más útil, como una caja de herramientas o un buen libro?\n\n#### La Colección Infinita de Zapatos\n\n¿Sabes cuántos zapatos puede tener una persona antes de que se convierta en una colección? Pues bien, los jóvenes marchosos tienen la respuesta. Tienen más zapatos que una tienda de calzado. ¿Y para qué? Para lucirlos en Instagram, por supuesto. ¿Qué tal si usan ese dinero para aprender a cocinar o para hacer un viaje de descubrimiento?\n\n#### El Arte de la Mala Gestion Financiera\n\n¿Alguna vez has visto a alguien gastar su salario en un viaje de lujo cuando apenas tiene un mes de antigüedad en su trabajo? Pues bien, eso es lo que llamo el arte de la mala gestión financiera. Estos jóvenes tienen el dinero, pero no saben cómo manejarlo. ¿Qué tal si aprenden a ahorrar o a invertir en su futuro?\n\n#### Conclusión: Más que Marchosos, Necesitan un Curso de Finanzas\n\nEn resumen, los jóvenes marchosos son una maravilla de la humanidad. No solo tienen dinero, sino que también tienen la habilidad de gastarlo en cosas que ni siquiera necesitan. Pero, ¿por qué no intentan invertir ese dinero en algo más útil? ¿Por qué no aprenden a ahorrar o a invertir en su futuro? ¿Por qué no intentan ser un poco más responsables con su dinero? ¿Por qué no intentan ser un poco más como los mayores de 65 años, que saben cómo manejar su dinero y cómo vivir una vida plena y satisfactoria? ¡Qué ironía!\n\nCon cariño (y un poco de sarcasmo),\n\nMaría Rosa","img":a group of young people walking down a trendy city street, each carrying expensive designer bags and wearing brand new, overpriced clothing, with a look of self-satisfaction on their faces, surrounded by luxury boutiques and cafes}
-'''
+# json_problematico = ''
 
 # Probar la función
-sanitize_to_json(json_problematico)
+# sanitize_to_json(json_problematico)
 
 
 def get_text(text):
@@ -109,7 +157,6 @@ def get_text(text):
         print("=================================================================================================")
         print(f"Error al cargar JSON directamente: {e}")
         print("=================================================================================================")
-
 
 def local_css(file_name):
     with open(file_name) as f:

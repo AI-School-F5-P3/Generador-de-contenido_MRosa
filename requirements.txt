@@ -1,0 +1,10 @@
+faiss-cpu
+langchain-core
+langchain-community
+langchain-huggingface
+sentence-transformers
+huggingface-hub
+requests
+python-dotenv
+feedparser
+groq

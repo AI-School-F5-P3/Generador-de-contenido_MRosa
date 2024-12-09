@@ -2,13 +2,13 @@ from pydantic import BaseModel, Field, model_validator
 from typing import Optional
 
 class PromptManager(BaseModel):
-    platform: str
-    topic: str = "No se que escribir"
-    audience: str = "generalista"
-    tone: str = "neutro"
+    platform: str = "Blog"
+    topic: str = "I don't know what to write"
+    audience: str = "general"
+    tone: str = "neutral"
     age: Optional[int] = None
-    language: str = "Español"
-    forget: str = "Forget everything we've talked about before in this conversation.." 
+    language: str = "Spanish"
+    forget: str = "Forget everything we've talked about before in this conversation." 
     output_format: str = Field(default="")
     restriction: str = Field(default="")
     personalization_info: bool = False
@@ -194,20 +194,11 @@ class PromptManager(BaseModel):
         )
 
 PROMPTS = {
-    "Blog": (
-    """
-    {forget} 
-    ROLE: Please, act as both a JSON generator and a blog post expert. You specialize in creating structured JSON data and in writing professional, engaging, and well-structured blog entries about {topic} in {language}, utilizando un tone {tone}.
-    CONTEXT: 
-    1. For JSON tasks, you are required to generate valid JSON objects with clear structure and properly populated fields, such as "txt" for text descriptions and `"img"` for image URLs.
-    2. For blog post tasks, you must craft high-quality, creative, and informative blog entries. Each blog post should include an engaging introduction, well-organized sections, and a clear conclusion.You specialize in generating detailed, well-structured and attractive content that connects with an audience made up of {audience}. 
-
-    REQUEST: Combine your expertise to perform the following:
-    1. Generate a JSON object with the keys "txt" and `"img"`. The "txt" field should include a descriptive text in {language}, relevant to the blog post topic \"{topic}\" (including a title, a subtitle, and at least five paragraphs), using a tone {tone}, and the `"img"` field should contain a valid prompt for stabilityai/stable-diffusion-2-1 about {topic} to illustrate the generated text.
-    2. Write an extense blog post related to the topic described in the JSON's "txt" field: {topic}. The blog post should have an engaging introduction, at least three well-structured subsections, and a conclusion (including a title, a subtitle, and at least five paragraphs). {personalization}
-    {restriction} 
-    {output_format}
-    """
+    "Blog": ("""
+**ROLE**: Please, act as a blog post expert. You specialize in writing professional, engaging, and well-structured blog entries about {topic} in {language}, using a tone {tone}.
+**CONTEXT**: You must craft high-quality, creative, and informative blog entries. Each blog post should include an engaging introduction, well-organized sections, and a clear conclusion.You specialize in generating detailed, well-structured and attractive content that connects with an audience made up of {audience}. 
+**REQUEST**: Write an extense blog post related to the topic described in the JSON's "txt" field: {topic}. The blog post should have an engaging introduction, at least three well-structured subsections, and a conclusion (including a title, a subtitle, and at least five paragraphs).
+"""
     ),
     "Twitter": (
         """ 

@@ -1,53 +1,72 @@
 from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from typing import Optional, List
+from src.rag_pipeline import RAGPipeline 
+from src.arxiv_client import ArxivClient
 from src.moderation import Moderation
-from src.prompt_manager import PromptManager, PROMPTS
-from src.model_client import ModelClient
-import os
-import sys
-from pathlib import Path
-sys.path.append(str(Path(__file__).resolve().parent.parent / "src"))
 
-
-# Inicializar FastAPI
+# Inicializa FastAPI
 app = FastAPI()
 
-# Inicializar modelos y cliente
-moderation = Moderation()
-hf_token = os.getenv("HF_API_TOKEN")
-if not hf_token:
-    raise ValueError("No se encontró el token de Hugging Face en las variables de entorno.")
-model_client = ModelClient(model_name="Qwen/Qwen2.5-Coder-32B-Instruct", hf_token=hf_token)
+# Modelo para los parámetros de entrada
+class QueryParams(BaseModel):
+    query: str
+    category: str
+    platform: str = "Blog"
+    audience: str = "general"
+    tone: str = "neutral"
+    age: Optional[int] = None
+    language: str = "Spanish"
+    personalization_info: bool = False
+    company_name: str = ""
+    author: str = ""
 
-@app.post("/generar")
-async def generar_contenido(request: PromptManager):
-    # Moderar el texto
-    texto_completo = f"{request.topic} {request.audience}"
-    score = moderation.validar_moderacion(texto_completo)
-    if score > 0.5:
+# Inicializa el pipeline
+pipeline = RAGPipeline(
+    embedding_model_name="sentence-transformers/all-mpnet-base-v2",
+    llm_model_name="llama3-8b-8192",
+    device="cpu"  # Cambiar a "cuda" si hay GPU disponible
+)
+
+moderation = Moderation() # Modera el texto
+
+@app.post("/generate-response/")
+def generate_response(params: QueryParams):
+
+    score_a = moderation.moderate(params.query) 
+    formatted_score_a = round(score_a * 100, 2)  # Multiplicamos por 100 y redondeamos a 2 decimales
+
+    score_b = moderation.moderate(params.audience)    
+    formatted_score_b = round(score_b * 100, 2) 
+
+    if score_a > 0.5:
         raise HTTPException(
             status_code=400,
-            detail=f"Por favor, revisa el texto para evitar lenguaje ofensivo antes de enviarlo (score={score:.2f})."
+            detail=f"Por favor, revisa el texto para evitar lenguaje ofensivo en el tema (hate score = {formatted_score_a}%)."
+        )
+    elif score_b > 0.5:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Por favor, dirigete a tu audiencia con respeto (hate score = {formatted_score_b}%)."
         )
 
-    # Validar la plataforma
-    if request.platform not in PROMPTS:
-        raise HTTPException(status_code=400, detail="Plataforma no soportada.")
 
-    # Crear el prompt utilizando el método generate_prompt
     try:
-        prompt = request.generate_prompt()  # Personalización incluida en generate_prompt
-        print("\n============================= prompt =========================================\n")
-        print(prompt)
-        print("\n================================================================================\n")
+        # Crear el prompt 
+        term = params.query
+        category = params.category  # Ejemplo, puedes ajustar esto
+        papers = ArxivClient.fetch_arxiv_papers(term=term, category=category, max_results=10)
+        documents = ArxivClient.papers_to_documents(papers)
+        pipeline.add_documents(documents)
 
+        # Recupera y genera la respuesta
+        relevant_chunks = pipeline.retrieve_relevant_chunks(term, top_k=5)
+        response = pipeline.generate_response(term, relevant_chunks)
+        response_img = pipeline.generate_image_prompt(term, relevant_chunks)
+
+        return {
+            "txt": response,
+            "img": response_img
+        }
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-
-    # prompt = prompt[:1500]
-
-
-    try:
-        respuesta = model_client.generar_respuesta(prompt, max_tokens=1500, temperature=0.3, top_p=0.9)
-        return {"respuesta": respuesta}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
