@@ -9,6 +9,7 @@ class GeneradorImagenesSD:
 
         self.pipeline = StableDiffusionPipeline.from_pretrained(
             modelo,
+            variant="fp16",
             torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32
         )
         self.pipeline.scheduler = DPMSolverMultistepScheduler.from_config(self.pipeline.scheduler.config)
@@ -54,7 +55,7 @@ if __name__ == "__main__":
         alto=512,
         ancho=512,
         guidance_scale=7.5,
-        num_steps=10,
+        num_steps=50,
         semilla=1175181494,
         negative_prompt="nrealfixer, nfixer, 3d render, cgi, painting, drawing, cartoon, anime,easynegative, (low quality, worst quality:1.4), bad anatomy, bad composition, out of frame, duplicate, watermark, signature, text"
     )
