@@ -83,24 +83,14 @@ categories = {
 }
 
 # Crear pestañas
-# tab1, tab2 = st.tabs(["Principal", "Categorías"])
+tab1, tab2 = st.tabs(["Redes sociales", "Artículo científico"])
 
-# with tab1:
-    # Título de la aplicación
+with tab1:
 
-col1, col2 = st.columns([1.5, 1])  # La primera columna es 1.5 veces más ancha que la segunda
 
-with col1:
-        
-        # Formulario para la entrada del usuario
-        selected_category = st.selectbox("Selecciona una categoría principal", categories.keys())
-        if selected_category:
-            subcategories = categories[selected_category]
-            selected_subcategory = st.selectbox("Selecciona una subcategoría", subcategories.keys())
+    col1, col2 = st.columns([1.5, 1])  # La primera columna es 1.5 veces más ancha que la segunda
 
-            if selected_subcategory:
-                category = subcategories[selected_subcategory]
-                # st.write(f"Has seleccionado: {selected_category} → {subcategories[selected_subcategory]}")
+    with col1:
         query  = st.text_input("Tema", placeholder="Introduce el tema aquí...")
         audience = st.text_input("Audiencia", placeholder="Introduce la audiencia objetivo...")
         col11, col12, col13, col14  = st.columns(4)        
@@ -144,107 +134,108 @@ with col1:
             company_name = ""
             author = ""
 
-with col2:
-    with st.container(key="svgimage"):
-        svg_write()
+    with col2:
+        with st.container(key="svgimage"):
+            svg_write()
 
-# Botón para generar contenido
-if st.button("Generar Contenido"):
-        if query.strip() == "":
-                st.error("El campo Tema es obligatorio. Por favor, ingrese un valor.")
-        elif audience.strip() == "":
-                st.error("El campo Audiencia es obligatorio. Por favor, ingrese un valor.")
-        elif personalization_info == True:
-            if (company_name.strip() == "") and (author.strip() == ""):
-                st.error("Debe introducir al menos Empresa o Autor.")
-        else:
-            with st.spinner("Generando contenido..."):
-                print("GENERANDO CONTENIDO...")
-                # Crear el payload para la solicitud
-                payload = {
-                    "query": query,
-                    "category": category,
-                    "platform": platform,
-                    "audience": audience,
-                    "tone": tone,
-                    "age": age if age and age > 0 else None,
-                    "language": language,
-                    "personalization_info": personalization_info,
-                    "company_name": company_name,
-                    "author": author,
-                }
-                print(f"PAYLOAD... {payload}")
-                try:
-                    # Enviar la solicitud al backend
-                    response = requests.post(API_URL, json=payload)
-                    
-                    
-                    # Intentar obtener el JSON de la respuesta
-                    if response.status_code == 200:
-                        data = response.json()
-                        print(f"response_data... {data}")
-                        # Mostrar un mensaje con HTML
-                        st.header("Disfruta de tu contenido")
-                        with st.container(key="lolo"):                                  
-                            # Acceder a los valores del diccionario
-                            texto = data.get("txt", "Texto no disponible.")
-                            descripcion_imagen = data.get("img", "Descripción de imagen no disponible.")
-                            col1, col2  = st.columns([1.5, 1])       
-                            with col1:                       
-                                # Mostrar el texto con un spinner
-                                with st.spinner("Generando texto..."):
-                                    st.write(f"{texto}")
-                            with col2:
-                                # Generar la imagen con un spinner
-                                with st.spinner("Generando imagen..."):
-                                                
-                                    # Generar imagen si está el check activado
-                                    if ai_image:
-                                        
-                                        generador = GeneradorImagenesSD()
-                                        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-                                        archivo_salida = f"assets/output_images/img_{timestamp}.png"
-                                        # Generar imagen comentado
-                                        generador.generar_imagen(
-                                            texto=descripcion_imagen,
-                                            archivo_salida=archivo_salida,
-                                            alto=512,
-                                            ancho=512,
-                                            guidance_scale=7.5,
-                                            num_steps=10,
-                                            semilla=1175181494,
-                                            negative_prompt="nrealfixer, nfixer, 3d render, cgi, painting, drawing, cartoon, anime,easynegative, (low quality, worst quality:1.4), bad anatomy, bad composition, out of frame, duplicate, watermark, signature, text"
-                                        )
-                                        st.image(archivo_salida, caption=descripcion_imagen, use_container_width=True)
-                    elif response.status_code == 400:
-                        error_response = response.json()
-                        if (tone == "Humorístico") or (tone == "Sarcástico"):
-                            st.error("❌ Te voy a lavar la boca con lejía")
+    # Botón para generar contenido
+    if st.button("Generar Contenido"):
+            if query.strip() == "":
+                    st.error("El campo Tema es obligatorio. Por favor, ingrese un valor.")
+            elif audience.strip() == "":
+                    st.error("El campo Audiencia es obligatorio. Por favor, ingrese un valor.")
+            elif personalization_info == True:
+                if (company_name.strip() == "") and (author.strip() == ""):
+                    st.error("Debe introducir al menos Empresa o Autor.")
+            else:
+                with st.spinner("Generando contenido..."):
+                    print("GENERANDO CONTENIDO...")
+                    # Crear el payload para la solicitud
+                    payload = {
+                        "query": query,
+                        "category": category,
+                        "platform": platform,
+                        "audience": audience,
+                        "tone": tone,
+                        "age": age if age and age > 0 else None,
+                        "language": language,
+                        "personalization_info": personalization_info,
+                        "company_name": company_name,
+                        "author": author,
+                    }
+                    print(f"PAYLOAD... {payload}")
+                    try:
+                        # Enviar la solicitud al backend
+                        response = requests.post(API_URL, json=payload)
+                        
+                        
+                        # Intentar obtener el JSON de la respuesta
+                        if response.status_code == 200:
+                            data = response.json()
+                            print(f"response_data... {data}")
+                            # Mostrar un mensaje con HTML
+                            st.header("Disfruta de tu contenido")
+                            with st.container(key="lolo"):                                  
+                                # Acceder a los valores del diccionario
+                                texto = data.get("txt", "Texto no disponible.")
+                                descripcion_imagen = data.get("img", "Descripción de imagen no disponible.")
+                                col1, col2  = st.columns([1.5, 1])       
+                                with col1:                       
+                                    # Mostrar el texto con un spinner
+                                    with st.spinner("Generando texto..."):
+                                        st.write(f"{texto}")
+                                with col2:
+                                    # Generar la imagen con un spinner
+                                    with st.spinner("Generando imagen..."):
+                                                    
+                                        # Generar imagen si está el check activado
+                                        if ai_image:
+                                            
+                                            generador = GeneradorImagenesSD()
+                                            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                                            archivo_salida = f"assets/output_images/img_{timestamp}.png"
+                                            # Generar imagen comentado
+                                            generador.generar_imagen(
+                                                texto=descripcion_imagen,
+                                                archivo_salida=archivo_salida,
+                                                alto=512,
+                                                ancho=512,
+                                                guidance_scale=7.5,
+                                                num_steps=10,
+                                                semilla=1175181494,
+                                                negative_prompt="nrealfixer, nfixer, 3d render, cgi, painting, drawing, cartoon, anime,easynegative, (low quality, worst quality:1.4), bad anatomy, bad composition, out of frame, duplicate, watermark, signature, text"
+                                            )
+                                            st.image(archivo_salida, caption=descripcion_imagen, use_container_width=True)
+                        elif response.status_code == 400:
+                            error_response = response.json()
+                            if (tone == "Humorístico") or (tone == "Sarcástico"):
+                                st.error("❌ Te voy a lavar la boca con lejía")
+                            else:
+                                st.error(f"❌ {json.loads(response.text)['detail']}")
                         else:
-                            st.error(f"❌ {json.loads(response.text)['detail']}")
-                    else:
-                        print(f"❌❌❌❌❌❌❌❌❌... {response.status_code}: {response.text}")
-                        st.error(f"Error del servidor ({response.status_code}): {response.text}")
-                except requests.RequestException as e:
-                    st.error(f"Error al conectar con el servidor: {e}")
+                            print(f"❌❌❌❌❌❌❌❌❌... {response.status_code}: {response.text}")
+                            st.error(f"Error del servidor ({response.status_code}): {response.text}")
+                    except requests.RequestException as e:
+                        st.error(f"Error al conectar con el servidor: {e}")
 
-# with tab2:
-    # col1, col2 = st.columns([1.5, 1])  # La primera columna es 1.5 veces más ancha que la segunda
 
-    # with col1:
-    #     st.write("hola")
-    #     # selected_category = st.selectbox("Selecciona una categoría principal", categories.keys())
+with tab2:
+    col1, col2 = st.columns([1.5, 1])  # La primera columna es 1.5 veces más ancha que la segunda
 
-    #     # if selected_category:
-    #     #     subcategories = categories[selected_category]
-    #     #     selected_subcategory = st.selectbox("Selecciona una subcategoría", subcategories.keys())
+    with col1:
+        selected_category = st.selectbox("Selecciona una categoría principal", categories.keys())
+        if selected_category:
+            subcategories = categories[selected_category]
+            selected_subcategory = st.selectbox("Selecciona una subcategoría", subcategories.keys())
 
-    #     #     if selected_subcategory:
-    #     #         st.write(f"Has seleccionado: {selected_category} → {subcategories[selected_subcategory]}")
+            if selected_subcategory:
+                category = subcategories[selected_subcategory]
+                # st.write(f"Has seleccionado: {selected_category} → {subcategories[selected_subcategory]}")
 
-    # with col2:
-    #     with st.container(key="svgimage_t2"):
-    #         svg_write()
+
+    with col2:
+        with st.container(key="svgimage_t2"):
+            svg_write()
 
     # # Botón para generar contenido
     # if st.button("Generar Contenido", key='boton2'):
