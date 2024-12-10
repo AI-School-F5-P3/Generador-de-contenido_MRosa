@@ -25,7 +25,7 @@
     │   ├── __init__.py
     │   ├── arxiv_client.py          # Módulo para interactuar con arXiv (funcionalidad RAG)
     │   ├── generate_prompt.py       # Generación y manejo de prompts
-    │   ├── main.py                  # Controlador principal de lógica
+    │   ├── main.py                  # Controlador alternativo de la lógica
     │   ├── moderation.py            # Moderación del contenido generado
     │   ├── prompt_manager.py        # Validación y gestión de prompts
     │   ├── rag_pipeline.py          # Implementación de la funcionalidad RAG
