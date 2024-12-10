@@ -3,6 +3,7 @@
     --white-color: #fff;
     --transparent-bg: rgba(0, 0, 0, 0.35);
     --primary-bg: rgba(33, 39, 80, 0.8);
+    --primary-bg-95: rgba(33, 39, 80, .96);
     --primary-color: #19d7ba;
     --secondary-color: rgba(255, 255, 255, 0.3);
     --terthiary-color: rgba(255, 255, 255, 0.6);
@@ -55,7 +56,7 @@ div[data-testid="stImageContainer"] img {
     opacity: .3;}
 
 .stMainBlockContainer.block-container {
-    max-width: 60vw;
+    max-width: 75vw;
     padding-top: 2rem;
 }
 
@@ -117,6 +118,15 @@ div[data-testid="stImageContainer"] img {
     color: var(--white-color);
 }
 
+.st-c2 {
+    background-color:var(--primary-color)
+}
+
+[data-baseweb="tab-border"]{
+    background-color: var(--primary-color);
+    opacity: 0.1;
+}
+
 .stButton button[kind="secondary"] {
     background: rgba(30, 50, 50, 0.3);
     border: 1px solid var(--secondary-color);
@@ -157,7 +167,17 @@ h3, h4, label[data-testid="stMetricLabel"] p {
 label, p, ul, li {
     color: var(--white-color);
 }
+[data-baseweb="popover"] [data-testid="stSelectboxVirtualDropdown"]{
+    background: var(--primary-bg-95);
+}
 
+[data-baseweb="popover"] > div, [data-baseweb="popover"] [data-testid="stSelectboxVirtualDropdown"] li {
+    background: transparent;
+}
+
+[data-baseweb="popover"] [data-testid="stSelectboxVirtualDropdown"] li:hover {
+    background: rgba(0, 0, 0, 0.35)
+}
 .stNumberInput {
     max-width: 265px;
 }
@@ -171,7 +191,7 @@ label, p, ul, li {
 [data-baseweb="slider"] .st-f7 {
     background: linear-gradient(to right, var(--primary-color) 0%, var(--primary-color) 22.2222%, rgba(151, 166, 195, 0.25) 22.2222%, rgba(151, 166, 195, 0.25) 100%);
 }
-[data-baseweb="slider"] .st-ew {
+[data-baseweb="slider"] .st-fv {
     background: linear-gradient(to right, var(--primary-color) 0%, var(--primary-color) 33.3333%, rgba(151, 166, 195, 0.25) 33.3333%, rgba(151, 166, 195, 0.25) 100%);
 }
 [data-baseweb="slider"] .st-f1 {
@@ -218,9 +238,9 @@ label, p, ul, li {
     align-items: center;
 }
 
-svg#freepik_stories-creativity {
+/* svg#freepik_stories-creativity {
     margin-top: 3rem;
-}
+} */
 
 .stExpander {
     border: 1px solid var(--secondary-color);
