@@ -13,6 +13,7 @@ main.load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
 
 # Acceder a las variables de entorno
 API_URL = os.getenv('API_URL')
+API_RAG_URL = os.getenv('API_RAG_URL')
 
 # Cargar configuración y CSS
 local_css(os.path.join(os.path.dirname(__file__), 'static', 'style.css'))
@@ -82,97 +83,131 @@ categories = {
     },
 }
 
-# Crear pestañas
-tab1, tab2 = st.tabs(["Redes sociales", "Artículo científico"])
-
-with tab1:
-
-
-    col1, col2 = st.columns([1.5, 1])  # La primera columna es 1.5 veces más ancha que la segunda
+def render_input_form(tab_key):
+    """
+    Renderiza el formulario de entrada con una clave única para cada pestaña.
+    """
+    query = st.text_input("Tema", placeholder="Introduce el tema aquí...", key=f"{tab_key}_query")
+    audience = st.text_input("Audiencia", placeholder="Introduce la audiencia objetivo...", key=f"{tab_key}_audience")
+    
+    if tab_key == "tab2":
+        col2, col3, col4, col1 = st.columns(4)
+    else:
+        col1, col2, col3, col4 = st.columns(4)
 
     with col1:
-        query  = st.text_input("Tema", placeholder="Introduce el tema aquí...")
-        audience = st.text_input("Audiencia", placeholder="Introduce la audiencia objetivo...")
-        col11, col12, col13, col14  = st.columns(4)        
-        with col11:
-            platform = st.selectbox("platform", ["Blog", "Twitter", "Instagram", "Linkedin", "Infantil"])
-        with col12:
-            tone = st.selectbox(
+        platform = "an article with popular scientific content"
+        if tab_key != "tab2":
+            platform = st.selectbox(
+                "Platform", 
+                ["Blog", "Instagram", "Linkedin", "Infantil"], 
+                key=f"{tab_key}_platform"
+            )
+    with col2:
+        tone = st.selectbox(
             "Tono", 
             [
                 "Formal", "Informal", "Objetivo", "Subjetivo", "Humorístico", "Sarcástico", 
                 "Persuasivo", "Optimista", "Pesimista", "Educativo", "Autoritario",  
                 "Inspirador", "Crítico", "Dramático", "Técnico", "Poético"
-            ]
+            ],
+            key=f"{tab_key}_tone"
         )
-        with col13:
-            language = st.selectbox(
-                "Idioma", 
-                ["Español", "Inglés", "Francés", "Alemán", "Italiano", "Árabe", "Portugués", "Coreano", "Hindi"]
-            )
-        with col14:
-            age = st.slider("Edad", 3, 12, value=6) if platform == "Infantil" else None
+    with col3:
+        language = st.selectbox(
+            "Idioma", 
+            ["Español", "Inglés", "Francés", "Alemán", "Italiano", "Árabe", "Portugués", "Coreano", "Hindi"], 
+            key=f"{tab_key}_language"
+        )
+    with col4:
+        age = st.slider(
+            "Edad", 3, 12, value=6, key=f"{tab_key}_age"
+        ) if platform == "Infantil" else None
 
-        col_personalization, col_img  = st.columns([1, 3])   
 
-        with col_personalization:
-            # Personalización
-            personalization_info = st.checkbox("Personalizar")
-        with col_img:
+    col_personalization, col_img = st.columns([1, 3])
+    
+    with col_personalization:
+        personalization_info = st.checkbox("Personalizar", key=f"{tab_key}_personalization_info")
+    with col_img:
+        ai_image = st.checkbox("Imagen", key=f"{tab_key}_ai_image")
+    
+    # Variables de personalización
+    company_name, author = "", ""
+    if personalization_info:
+        company_name = st.text_input("Nombre de la empresa", placeholder="Empresa...", key=f"{tab_key}_company_name")
+        author = st.text_input("Nombre del/a autor/a", placeholder="Autor/a...", key=f"{tab_key}_author")
+    
+    return {
+        "query": query,
+        "audience": audience,
+        "platform": platform,
+        "tone": tone,
+        "language": language,
+        "age": age if age else None,
+        "personalization_info": personalization_info,
+        "company_name": company_name,
+        "author": author,
+        "ai_image": ai_image,
+    }
 
-            # Imagen
-            ai_image = st.checkbox("Imagen")
+# Crear pestañas
+tab1, tab2 = st.tabs(["Redes sociales", "Artículo científico"])
 
-        # Inicializar variables de personalización
-        company_name = ""
-        author = ""
+with tab1:
 
-        if personalization_info:
-            company_name = st.text_input("Nombre de la empresa", placeholder="Empresa...")
-            author = st.text_input("Nombre del/a autor/a", placeholder="Autor/a...")
-        else:
-            company_name = ""
-            author = ""
+    tab1_col1, tab1_col2 = st.columns([1.5, 1])  # La primera columna es 1.5 veces más ancha que la segunda
 
-    with col2:
-        with st.container(key="svgimage"):
+    with tab1_col1:
+        tab1_inputs = render_input_form("tab1") 
+        # Botón para generar contenido
+        generate_button = st.button("Generar Contenido", key="generate_button_tab1")
+
+    with tab1_col2:
+        with st.container(key="svgimage_tab1"):
             svg_write()
 
-    # Botón para generar contenido
-    if st.button("Generar Contenido"):
-            if query.strip() == "":
-                    st.error("El campo Tema es obligatorio. Por favor, ingrese un valor.")
-            elif audience.strip() == "":
-                    st.error("El campo Audiencia es obligatorio. Por favor, ingrese un valor.")
-            elif personalization_info == True:
-                if (company_name.strip() == "") and (author.strip() == ""):
-                    st.error("Debe introducir al menos Empresa o Autor.")
-            else:
-                with st.spinner("Generando contenido..."):
-                    print("GENERANDO CONTENIDO...")
-                    # Crear el payload para la solicitud
-                    payload = {
-                        "query": query,
-                        "category": category,
-                        "platform": platform,
-                        "audience": audience,
-                        "tone": tone,
-                        "age": age if age and age > 0 else None,
-                        "language": language,
-                        "personalization_info": personalization_info,
-                        "company_name": company_name,
-                        "author": author,
-                    }
-                    print(f"PAYLOAD... {payload}")
-                    try:
-                        # Enviar la solicitud al backend
-                        response = requests.post(API_URL, json=payload)
-                        
-                        
-                        # Intentar obtener el JSON de la respuesta
-                        if response.status_code == 200:
+    if generate_button:            
+        query = tab1_inputs["query"]
+        audience = tab1_inputs["audience"]
+        platform = tab1_inputs["platform"]
+        tone = tab1_inputs["tone"]
+        language = tab1_inputs["language"]
+        age = tab1_inputs["age"]
+        personalization_info = tab1_inputs["personalization_info"]
+        company_name = tab1_inputs["company_name"]
+        author = tab1_inputs["author"]
+        ai_image = tab1_inputs["ai_image"]
+
+        if query.strip() == "":
+            st.error("El campo Tema es obligatorio. Por favor, ingrese un valor.")
+        elif audience.strip() == "":
+            st.error("El campo Audiencia es obligatorio. Por favor, ingrese un valor.")
+        elif personalization_info == True:
+            if (company_name.strip() == "") and (author.strip() == ""):
+                st.error("Debe introducir al menos Empresa o Autor.")
+        else:
+            with st.spinner("Generando contenido..."):
+                # Crear el payload para la solicitud
+                payload = {
+                    "query": query,
+                    "platform": platform,
+                    "audience": audience,
+                    "tone": tone,
+                    "age": age if age is not None and age > 0 else None,
+                    "language": language,
+                    "personalization_info": personalization_info,
+                    "company_name": company_name,
+                    "author": author,
+                }
+                
+                try:
+                    # Enviar la solicitud al backend
+                    response = requests.post(API_URL, json=payload)
+
+                    # Intentar obtener el JSON de la respuesta
+                    if response.status_code == 200:
                             data = response.json()
-                            print(f"response_data... {data}")
                             # Mostrar un mensaje con HTML
                             st.header("Disfruta de tu contenido")
                             with st.container(key="lolo"):                                  
@@ -206,23 +241,24 @@ with tab1:
                                                 negative_prompt="nrealfixer, nfixer, 3d render, cgi, painting, drawing, cartoon, anime,easynegative, (low quality, worst quality:1.4), bad anatomy, bad composition, out of frame, duplicate, watermark, signature, text"
                                             )
                                             st.image(archivo_salida, caption=descripcion_imagen, use_container_width=True)
-                        elif response.status_code == 400:
+                    elif response.status_code == 400:
                             error_response = response.json()
                             if (tone == "Humorístico") or (tone == "Sarcástico"):
                                 st.error("❌ Te voy a lavar la boca con lejía")
                             else:
                                 st.error(f"❌ {json.loads(response.text)['detail']}")
-                        else:
-                            print(f"❌❌❌❌❌❌❌❌❌... {response.status_code}: {response.text}")
+                    else:
+                            print(f"❌ {response.status_code}: {response.text}")
                             st.error(f"Error del servidor ({response.status_code}): {response.text}")
-                    except requests.RequestException as e:
+                except requests.RequestException as e:
                         st.error(f"Error al conectar con el servidor: {e}")
 
 
-with tab2:
-    col1, col2 = st.columns([1.5, 1])  # La primera columna es 1.5 veces más ancha que la segunda
 
-    with col1:
+with tab2:
+    tab2_col1, tab2_col2 = st.columns([1.5, 1])  # La primera columna es 1.5 veces más ancha que la segunda
+
+    with tab2_col1:
         selected_category = st.selectbox("Selecciona una categoría principal", categories.keys())
         if selected_category:
             subcategories = categories[selected_category]
@@ -230,58 +266,100 @@ with tab2:
 
             if selected_subcategory:
                 category = subcategories[selected_subcategory]
-                # st.write(f"Has seleccionado: {selected_category} → {subcategories[selected_subcategory]}")
+                st.write(f"Has seleccionado: {selected_category} → {subcategories[selected_subcategory]}")
 
+        tab2_inputs = render_input_form("tab2") 
 
-    with col2:
-        with st.container(key="svgimage_t2"):
+        # Botón para generar contenido
+        generate_rag_button = st.button("Generar Contenido", key="generate_button_tab2")
+
+    with tab2_col2:
+        with st.container(key="svgimage_tab2"):
             svg_write()
 
-    # # Botón para generar contenido
-    # if st.button("Generar Contenido", key='boton2'):
-        
-    #             # Crear el payload para la solicitud
-    #             payload = {
-    #                 "platform": "Blog",
-    #                 "topic": "I don't know what to write",
-    #                 "audience": "general",
-    #                 "tone": "neutral",
-    #                 "age": 0,
-    #                 "language": "Spanish",
-    #                 "forget": "Forget everything we've talked about before in this conversation.",
-    #                 "output_format": "",
-    #                 "restriction": "",
-    #                 "personalization_info": False,
-    #                 "company_name": "",
-    #                 "author": ""
-    #             }
-    #             print(f"PAYLOAD... {payload}")
-    #             try:
-    #                 # Enviar la solicitud al backend
-    #                 response = requests.post(API_RAG, json=payload)
-    #                 print(f"PAYLOAD... {response}")
-                    
-    #                 # Intentar obtener el JSON de la respuesta
-    #                 if response.status_code == 200:
-    #                     response_data = response.json()
+    if generate_rag_button:
+        query = tab2_inputs["query"]
+        audience = tab2_inputs["audience"]
+        platform = tab2_inputs["platform"]
+        tone = tab2_inputs["tone"]
+        language = tab2_inputs["language"]
+        age = tab2_inputs["age"]
+        personalization_info = tab2_inputs["personalization_info"]
+        company_name = tab2_inputs["company_name"]
+        author = tab2_inputs["author"]
+        ai_image = tab2_inputs["ai_image"]
 
-    #                     # Mostrar un mensaje con HTML
-    #                     st.header("Disfruta de tu contenido")
-    #                     with st.container(key="lolo"):                                  
-    #                         # Acceder a los valores del diccionario
-    #                         texto = data.get("txt", "Texto no disponible.")
-    #                         descripcion_imagen = data.get("img", "Descripción de imagen no disponible.")
-    #                         col1, col2  = st.columns([1.5, 1])       
-                                                                       
-  
-    #                 elif response.status_code == 400:
-    #                     error_response = response.json()
-    #                     if (tone == "Humorístico") or (tone == "Sarcástico"):
-    #                         st.error("❌ Te voy a lavar la boca con lejía")
-    #                     else:
-    #                         st.error(f"❌ {json.loads(response.text)['detail']}")
-    #                 else:
-    #                     print(f"❌❌❌❌❌❌❌❌❌... {response.status_code}: {response.text}")
-    #                     st.error(f"Error del servidor ({response.status_code}): {response.text}")
-    #             except requests.RequestException as e:
-    #                 st.error(f"Error al conectar con el servidor: {e}")
+        if query.strip() == "":
+            st.error("El campo Tema es obligatorio. Por favor, ingrese un valor.")
+        elif audience.strip() == "":
+            st.error("El campo Audiencia es obligatorio. Por favor, ingrese un valor.")
+        elif personalization_info == True:
+            if (company_name.strip() == "") and (author.strip() == ""):
+                st.error("Debe introducir al menos Empresa o Autor.")
+        else:
+            with st.spinner("Generando contenido..."):
+                # Crear el payload para la solicitud
+                payload = {
+                    "query": query,
+                    "category": category,
+                    "platform": platform,
+                    "audience": audience,
+                    "tone": tone,
+                    "age": age if age is not None and age > 0 else None,
+                    "language": language,
+                    "personalization_info": personalization_info,
+                    "company_name": company_name,
+                    "author": author,
+                }
+                
+                try:
+                    # Enviar la solicitud al backend
+                    response = requests.post(API_RAG_URL, json=payload)
+
+                    # Intentar obtener el JSON de la respuesta
+                    if response.status_code == 200:
+                            data = response.json()
+                            # Mostrar un mensaje con HTML
+                            st.header("Disfruta de tu contenido")
+                            with st.container(key="rag"):                                  
+                                # Acceder a los valores del diccionario
+                                texto = data.get("txt", "Texto no disponible.")
+                                descripcion_imagen = data.get("img", "Descripción de imagen no disponible.")
+                                col1, col2  = st.columns([1.5, 1])       
+                                with col1:                       
+                                    # Mostrar el texto con un spinner
+                                    with st.spinner("Generando texto..."):
+                                        st.write(f"{texto}")
+                                with col2:
+                                    # Generar la imagen con un spinner
+                                    with st.spinner("Generando imagen..."):
+                                                    
+                                        # Generar imagen si está el check activado
+                                        if ai_image:
+                                            
+                                            generador = GeneradorImagenesSD()
+                                            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                                            archivo_salida = f"assets/output_images/img_{timestamp}.png"
+                                            # Generar imagen comentado
+                                            generador.generar_imagen(
+                                                texto=descripcion_imagen,
+                                                archivo_salida=archivo_salida,
+                                                alto=512,
+                                                ancho=512,
+                                                guidance_scale=7.5,
+                                                num_steps=10,
+                                                semilla=1175181494,
+                                                negative_prompt="nrealfixer, nfixer, 3d render, cgi, painting, drawing, cartoon, anime,easynegative, (low quality, worst quality:1.4), bad anatomy, bad composition, out of frame, duplicate, watermark, signature, text"
+                                            )
+                                            st.image(archivo_salida, caption=descripcion_imagen, use_container_width=True)
+                    elif response.status_code == 400:
+                            error_response = response.json()
+                            if (tone == "Humorístico") or (tone == "Sarcástico"):
+                                st.error("❌ Te voy a lavar la boca con lejía")
+                            else:
+                                st.error(f"❌ {json.loads(response.text)['detail']}")
+                    else:
+                            print(f"❌ {response.status_code}: {response.text}")
+                            st.error(f"Error del servidor ({response.status_code}): {response.text}")
+                except requests.RequestException as e:
+                        st.error(f"Error al conectar con el servidor: {e}")

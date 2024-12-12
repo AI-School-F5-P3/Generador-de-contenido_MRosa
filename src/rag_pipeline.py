@@ -52,14 +52,44 @@ class RAGPipeline:
         self.llm_client = Groq()
         self.llm_model_name = llm_model_name
 
+        # Instanciar GeneratePrompt
+        self.prompt_generator = GeneratePrompt()
+
     def add_documents(self, documents):
         """
-        Agrega documentos al índice FAISS.
+        Agrega documentos al índice FAISS usando IDs únicos preexistentes en los metadatos.
         """
-        print(documents)
+        print("Adding documents...")
 
-        ids = [str(i) for i, _ in enumerate(documents)]
-        self.vectorstore.add_documents(documents=documents, ids=ids)
+        # Extraer los IDs de los documentos
+        ids = []
+        for doc in documents:
+            if "id" not in doc.metadata:
+                raise ValueError("Document metadata must contain an 'id' field.")
+            ids.append(doc.metadata["id"])
+
+        # Verificar si los IDs ya existen en el índice
+        existing_ids = set(self.vectorstore.index_to_docstore_id.values())
+        new_ids = [doc_id for doc_id in ids if doc_id not in existing_ids]
+
+        if not new_ids:
+            print("All documents already exist in the index. Skipping addition.")
+            return
+
+        # Filtrar documentos que tienen IDs únicos
+        documents_to_add = [
+            doc for doc in documents if doc.metadata["id"] in new_ids
+        ]
+
+        if len(documents_to_add) == 0:
+            print("No new documents to add.")
+            return
+
+        # Agregar los documentos al vectorstore
+        self.vectorstore.add_documents(documents=documents_to_add, ids=new_ids)
+        print(f"Successfully added {len(documents_to_add)} new documents.")
+
+
 
     def retrieve_relevant_chunks(self, query, top_k=5):
         """
@@ -68,35 +98,53 @@ class RAGPipeline:
         return self.vectorstore.similarity_search(query=query, k=top_k)
         
 
-    def generate_response(self, query, context_chunks):
+    def generate_response(self, query, platform, audience, tone, age, language, personalization_info, company_name, author):
+        """
+        Genera una respuesta basada en los fragmentos recuperados.
+        """
+                
+        # Generar el prompt
+        prompt = self.prompt_generator.generate_prompt(
+            query=query,
+            platform=platform,
+            audience=audience,
+            tone=tone,
+            age=age,
+            language=language,
+            personalization_info=personalization_info,
+            company_name=company_name,
+            author=author
+        )
+        
+        print(f"\n{BRIGHT_GREEN}{STAR} PROMPT {STAR}{RESET}")
+        print(f"\n{TURQUOISE}{prompt}{RESET}\n")
+
+        completion = self.llm_client.chat.completions.create(
+            model=self.llm_model_name,
+            messages=[{"role": "system", "content": prompt}],
+            temperature=0.7,
+            max_tokens=1024,
+            top_p=1,
+            stop=None,
+        )
+        
+        return completion.choices[0].message.content
+
+    def generate_rag_response(self, query, context_chunks, platform, audience, tone, age, language, personalization_info, company_name, author):
         """
         Genera una respuesta basada en los fragmentos recuperados.
         """
         context = "\n".join([chunk.page_content for chunk in context_chunks])
-
-        # Instanciar GeneratePrompt
-        prompt_generator = GeneratePrompt()
-
-        # Datos de ejemplo
-        platform = "Blog"
-        audience = "redactores principiantes"
-        tone = "humorístico"
-        age = 25
-        language = "Spanish"
         forget = "Forget everything we've talked about before in this conversation."
-        personalization_info = True
-        company_name = "Factoría F5"
-        author = "Mª Rosa Cuenca"
-        category = "math.AC" 
-        
+
+                
         # Generar el prompt
-        prompt = prompt_generator.generate_prompt(
+        prompt = self.prompt_generator.generate_rag_prompt(
             query=query,
             context=context,
             platform=platform,
             audience=audience,
             tone=tone,
-            age=age,
             language=language,
             forget=forget,
             personalization_info=personalization_info,
@@ -117,8 +165,31 @@ class RAGPipeline:
         )
         return completion.choices[0].message.content
 
+    
+    def generate_image_prompt(self, query):
+        """
+        Genera una respuesta basada en los fragmentos recuperados.
+        """
 
-    def generate_image_prompt(self, query, context_chunks):
+        prompt = (
+            f"You are an AI assistant specialized in generating a valid prompt for stabilityai/stable-diffusion-2-1 to illustrate this topic: {query}.\n"
+"You must provide only the English prompt as a response.\n"
+"Example response: Portrait of a female programmer working in an office using an AI assistant, modern office environment, bright daylight, computer and tablet screens showing AI related data and algorithms."
+"You can only use a maximum of 77 tokens. Your interlocutor is the stable diffusion model, so skip phrases like 'Here is a valid prompt for stabilityai/stable-diffusion-2-1:'")     
+        print(f"\n{BRIGHT_GREEN}{STAR} PROMPT {STAR}{RESET}")
+        print(f"\n{TURQUOISE}{prompt}{RESET}\n")
+
+        completion = self.llm_client.chat.completions.create(
+            model=self.llm_model_name,
+            messages=[{"role": "system", "content": prompt}],
+            temperature=0.7,
+            max_tokens=1024,
+            top_p=1,
+            stop=None,
+        )
+        return completion.choices[0].message.content
+
+    def generate_rag_image_prompt(self, query, context_chunks):
         """
         Genera una respuesta basada en los fragmentos recuperados.
         """
@@ -142,3 +213,5 @@ f"**Context:**\n{context}\n\n"
             stop=None,
         )
         return completion.choices[0].message.content
+
+

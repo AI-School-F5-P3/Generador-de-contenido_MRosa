@@ -60,7 +60,7 @@ div[data-testid="stImageContainer"] img {
     padding-top: 2rem;
 }
 
-.st-key-lolo{
+.st-key-lolo, .st-key-rag{
     padding: 30px; 
     border-radius: var(--border-radius); 
     background-color: rgba(33, 195, 84, 0.1);
