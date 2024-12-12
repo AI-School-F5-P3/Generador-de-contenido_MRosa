@@ -46,5 +46,14 @@ if __name__ == "__main__":
     file_name ="assets/output_images/img.png",
     
     imagen_generada = generador.generate_image(prompt, alto, ancho, guidance_scale, num_steps, seed)
-    imagen_generada.save(file_name)
-    print(f"Imagen generada y guardada como {file_name}.")
+    imagen_generada.show()
+    
+    if imagen_generada:
+        try:
+            # Guardar la imagen generada
+            imagen_generada.save(file_name)
+            print(f"Imagen generada y guardada como {file_name}.")
+        except Exception as save_error:
+            print(f"Ocurrió un error al guardar la imagen: {save_error}")
+    else:
+        print("No se generó ninguna imagen para guardar.")
